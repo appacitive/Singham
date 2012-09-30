@@ -7,4 +7,4 @@ var t = setInterval(function() {
 		console.log(message.toString())
 		client.close()
 	})
-}, 100)
+}, 2000)
