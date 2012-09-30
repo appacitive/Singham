@@ -5,7 +5,7 @@ var map = {}
 statServer.on('message', function (msg, rinfo) {
     msg = msg.toString()
     try {
-        aggregator.acceptStat(msg.split('|')[0], msg.split('|')[1])
+        aggregator.acceptStat(msg.split('|')[0], msg.split('|')[1], msg.split('|')[2])
     } catch (e) { console.dir(e) }
 });
 
