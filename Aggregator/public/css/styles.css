@@ -1,0 +1,31 @@
+body {
+	margin: 0px;
+	padding: 0px;
+}
+
+.canvas {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+.cell {
+	position: relative;
+	border: 1px solid transparent;
+	float: left;
+	display: inline-block;
+	opacity: 1;
+	width: 4px;
+	height: 4px;
+	background-color: white;
+}
+
+.cell:hover {
+	border: 1px solid black;
+	opacity: 1;
+	background-color: black;
+}
+
+.clear {
+	clear: both;
+}
