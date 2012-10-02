@@ -2,9 +2,9 @@
 var exceptions = require('./exceptions').exceptions
 
 // -----------  configurations  ----------
-var latencyBucketSize = 10
-var timeSliceSize = 5
-var windowSize = 10 * 60
+var latencyBucketSize = 50
+var timeSliceSize = 1
+var windowSize = 3 * 60
 // -----------  configurations  ----------
 
 var aggregator = new (function() {
@@ -97,7 +97,11 @@ var aggregator = new (function() {
 		var statTime = new Date(timeStamp)
 		var numWindows = windowSize / timeSliceSize
 
-		if (statTime > now) return
+		if (statTime > now) {
+			console.log('Future time received, discarding.')
+			console.log('Time was: ' + statTime + ' and time is: ' + now)
+			return
+		}
 		
 		// create map if doesn't exist
 		if (!maps[key]) {
@@ -156,6 +160,8 @@ var aggregator = new (function() {
 		maps[key].lastColumnWritten = columnNumber
 		maps[key].total += 1
 		maps[key].columns[columnNumber].total += 1
+
+		//console.log('Wrote the data.')
 	}
 
 })()

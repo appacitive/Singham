@@ -40,10 +40,12 @@ var insertBreak = function() {
 	})
 }
 
-var totalTime = 10 * 60
-var timeSliceSize = 5
-var latencyRange = 1 * 1000
-var latencyBucketSize = 10
+// -----------  configurations  ----------
+var totalTime = 3 * 60
+var timeSliceSize = 1
+var latencyRange = 1 * 6000
+var latencyBucketSize = 50
+// -----------  configurations  ----------
 
 var numWindows = parseInt(totalTime / timeSliceSize)
 var numBuckets = parseInt(latencyRange / latencyBucketSize)
@@ -72,7 +74,7 @@ var createGrid = function() {
 	window.onResize(numWindows * cellWidth, numBuckets * cellHeight)
 
 	var redraw = function() {
-		$.get('http://localhost:8080/singhamDataService.Call', function(data) {
+		$.get('http://localhost:8080/dataService.call', function(data) {
 			//console.dir(data)
 			parse(data)
 		})
@@ -95,7 +97,7 @@ var parse = function(d) {
 			var columnTotal = d.columns[slice].total, blockTotal = d.columns[slice][latency].total
 			var relative = blockTotal / columnTotal
 			var opacity = 1 - relative
-			getBlockByCoords(slice, latency).css('opacity', opacity)
+			getBlockByCoords(slice, numBuckets - latency).css('opacity', opacity)
 		}
 	}
 }

@@ -1,5 +1,5 @@
 var aggregator = require('./aggregator').aggregator
-var statServer = require("dgram").createSocket("udp4")
+var dgram = require("dgram")
 var static = require('node-static')
 
 
@@ -11,16 +11,22 @@ var headers = {
 }
 
 // the stat aggregator server
-statServer.on('message', function (msg, rinfo) {
-    msg = msg.toString()
-    try { aggregator.storeStat(msg.split('|')[0], msg.split('|')[1], msg.split('|')[2]) } catch(e) { 
-      console.dir(e) 
-      console.log(msg)
-    }
+
+var queued = 0
+var statServer = dgram.createSocket("udp4", function (msg, rinfo) {
+    queued++
+    if (queued % 3 == 0) console.log('Queue now has ' + queued + ' items.')
+    setTimeout(function() {
+      msg = msg.toString()
+      queued--
+      try { 
+        aggregator.storeStat(msg.split('|')[0], msg.split('|')[1], msg.split('|')[2])
+      } catch(e) { 
+        console.dir(e)
+        console.log(msg)
+      }
+    }, 0)
 });
-statServer.on('error', function(e) {
-  console.dir(arguments)
-})
 statServer.bind(39851);
 
 
