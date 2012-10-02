@@ -8,8 +8,8 @@ $(function() {
 		console.log('setting to ' + canvas.width + ' x ' + canvas.height)
 		var context = canvas.getContext('2d')
 		var gradient = context.createLinearGradient(0,0,0,canvas.height);
-		gradient.addColorStop(0, '#f00');
-		gradient.addColorStop(1, '#0f0');
+		gradient.addColorStop(1, '#0B173B');
+		gradient.addColorStop(0, '#0040FF');
 		context.fillStyle = gradient
 		context.fillRect(0, 0, canvas.width, canvas.height)
 	}
@@ -28,7 +28,7 @@ var appendBlock = function(height, width) {
 				.addClass('cell')
 				.css('height',height)
 				.css('width',width)
-				.css('opacity',opacity || 1)
+				.css('opacity',opacity || 0.7)
 				.appendTo($(document.body))
 		})
 	}
@@ -79,11 +79,12 @@ var createGrid = function() {
 			parse(data)
 		})
 	}
-	setInterval(redraw, 2000)
+	setInterval(redraw, 900)
 }
 var flag = false
+var defaultOpacity = 1
 var parse = function(d) {
-	$('.cell').css('opacity', 1)
+	$('.cell').css('opacity', defaultOpacity).css('border-right', '1px solid transparent')
 	var columns = d.columns
 	var getBlockByCoords = function(x, y) {
 		return $('#cell' + ((y * numWindows) + x))
@@ -97,7 +98,11 @@ var parse = function(d) {
 			var columnTotal = d.columns[slice].total, blockTotal = d.columns[slice][latency].total
 			var relative = blockTotal / columnTotal
 			var opacity = 1 - relative
-			getBlockByCoords(slice, numBuckets - latency).css('opacity', opacity)
+			var block = getBlockByCoords(slice, numBuckets - latency)
+			block.css('opacity', opacity - (1 - defaultOpacity))
+			if (slice == d.lastColumnWritten) {
+				block.css('border-right', '1px solid black')
+			}
 		}
 	}
 }
