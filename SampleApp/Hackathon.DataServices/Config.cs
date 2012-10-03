@@ -7,7 +7,7 @@ namespace Hackathon.DataServices
     {
         public static readonly int Port = 39851;
 
-        public static readonly IPAddress IpAddress = IPAddress.Parse("127.0.0.1");
+        public static readonly IPAddress IpAddress = IPAddress.Parse("192.168.2.253");
 
         public static readonly bool EnableHeatmap = true;
 

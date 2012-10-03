@@ -25,15 +25,12 @@ var aggregator = new (function() {
 	// returns statictics for the requested time window
 	// gives stats for window 'timeDurationInSeconds'
 	this.getStat = function(key, timeDurationInSeconds) {
-		timeDurationInSeconds = timeDurationInSeconds || 60
+		timeDurationInSeconds = timeDurationInSeconds || windowSize
 		
 		var map = maps[key]
 		if (!map) {
 			throw exceptions.noStats
 		}
-
-		// temp hack
-		return map
 
 		var numWindows = parseInt(timeDurationInSeconds / timeSliceSize)
 		var totalWindows = parseInt(windowSize / timeSliceSize)
@@ -51,16 +48,44 @@ var aggregator = new (function() {
 			// and keep a track of the api calls in that window
 			// and finally subtract from the total apicalls
 			//console.log('asked for stat, data is not rolled up. time window is: ' + timeDurationInSeconds)
-			for (var column in copy.columns) {
-				column = parseInt(column)
-				if (!column) continue
-				if (column >= numWindows) {
-					console.log('ignoring column: ' + column)
-					callsToIgnore += copy.columns[column].total
-					delete copy.columns[column]
+			var newColumns = { }, index = map.lastColumnWritten
+			for (var x = 0 ; x < numWindows ; x = x + 1) {
+				// start from the column most recently written to
+				// and add columns whilst going backwards
+				// if you hit zero, just loop around and keep at it
+				newColumns[x] = copy.columns[index]
+				index --
+				// console.log('copied ' + index + ' to ' + x)
+			}
+			// just copy over the columns from 'newColumns' to 'copy'
+			for (var column in newColumns) {
+				copy.columns[column] = newColumns[column]
+			}
+
+			if (false) {
+				for (var column in copy.columns) {
+					column = parseInt(column)
+					if (!column) continue
+					if (column >= numWindows) {
+						console.log('ignoring column: ' + column)
+						callsToIgnore += copy.columns[column].total
+						delete copy.columns[column]
+					}
+				}
+				copy.total -= callsToIgnore
+
+				var num = 0
+				for (var column in map.columns) {
+					column = parseInt(column)
+					if (!column) continue
+					num++
+				}
+				for (var column in copy.columns) {
+					column = parseInt(column)
+					if (isNaN(column)) continue
+					copy[column] = map[num - column]
 				}
 			}
-			copy.total -= callsToIgnore
 		} else {
 			// unroll the fucking thing
 			var latest = map.lastColumnWritten
@@ -71,9 +96,9 @@ var aggregator = new (function() {
 				// start from the column most recently written to
 				// and add columns whilst going backwards
 				// if you hit zero, just loop around and keep at it
-				index --
 				if (index < 0) index = totalWindows + index
 				newColumns[x] = copy.columns[index]
+				index --
 				// console.log('copied ' + index + ' to ' + x)
 			}
 			// just copy over the columns from 'newColumns' to 'copy'
