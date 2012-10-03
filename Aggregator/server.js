@@ -31,27 +31,42 @@ statServer.bind(39851);
 
 
 // the stat webservice
-require('http').createServer(function(request, response) {
-  var fragments = request.url.split('/').filter(function(fragment) {
-    return fragment.trim().replace(/\//gi,'').length > 0
-  })
+var handleSerivceCall = function(request, response) {
+    var fragments = request.url.split('/').filter(function(fragment) {
+      return fragment.trim().replace(/\//gi,'').length > 0
+    })
 
-  if (fragments[0].toLowerCase() == '_stats') {
-    response.end(JSON.stringify(aggregator.getAllKeys()))
-    return
-  }
+    if (fragments[1].toLowerCase() == '_stats') {
+      response.end(JSON.stringify(aggregator.getAllKeys()))
+      return
+    }
 
-	response.writeHead('200', headers)
-  var data
-	try { data = aggregator.getStat.apply({ }, fragments) } catch (e) { data = e }
-  response.end(JSON.stringify(data))
-
-}).listen(8080)
+    response.writeHead('200', headers)
+    var data
+    try { data = aggregator.getStat(fragments[1], fragments[2]) } catch (e) { data = e }
+    response.end(JSON.stringify(data))
+}
 
 // static fileserver
 var fileServer = new(static.Server)('./public');
 require('http').createServer(function (request, response) {
   request.addListener('end', function () {
-    fileServer.serve(request, response);
+    try {
+      // simple string based check for webservice call
+      var fragments = request.url.split('/').filter(function(fragment) {
+        return fragment.trim().replace(/\//gi,'').length > 0
+      })
+
+
+      if (fragments[0].toLowerCase() == 'stats') {
+        // service call is host/stats/{{type}}
+        handleSerivceCall(request, response)
+      } else {
+        fileServer.serve(request, response);
+      }
+    } catch(e) {
+      response.end(JSON.stringify(e))
+      console.log(e)
+    }
   });
 }).listen(80);

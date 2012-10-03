@@ -1,12 +1,64 @@
+<!DOCTYPE html>
 <html>
 	<head>
-		<title>Singham</title>
-		<!--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>-->
+		<title>Singham - Iss Main Hai Dum</title>
+
 		<script src="js/jquery.js"></script>
 		<script src="js/main.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="js/mustache.js"></script>
+
 		<link rel="stylesheet" href="css/styles.css">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
 	</head>
 	<body>
-		<canvas id="canvas" class="canvas"></canvas>
+		<div class="navbar navbar-inverse">
+		  <div class="navbar-inner">
+		    <div class="container">
+				<!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<!-- Be sure to leave the brand out there if you want it shown -->
+				<a class="brand" href="http://lmgtfy.com/?q=singham">Singham - Iss Mein Hai Dum!</a>
+				<!-- Everything you want hidden at 940px or less, place within here -->
+				<div class="nav-collapse">
+					<!-- .nav, .navbar-search, .navbar-form, etc -->
+				</div>
+				<ul class="nav">
+				  <li class="dropdown">
+				    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
+				      	Statistics<b class="caret"></b>
+				    </a>
+				    <ul class="dropdown-menu">
+
+				    </ul>
+				    <script type="text/template" id="tmplStatDropDown">
+					    {{#stats}}
+					    	<li><a href="javascript:void(0)" onclick="changeStat('{{name}}')">{{name}} - ({{total}})</a></li>
+					    {{/stats}}
+				    </script>
+				  </li>
+				</ul>
+		    </div>
+		  </div>
+		</div>
+		<div style="text-align: center">
+			<div class="legend y-axis">Latency (ms) &raquo;</div>
+			<div id="container">
+				<canvas id="canvas" class="canvas"></canvas>
+			</div>
+			<div style="clear: both"></div>
+			<div class="x-axis legend">Time (ms) &raquo;</div>
+		</div>
+		<script type="text/template" id="tmplTooltip">
+			<b>Details</b><br/>
+			Minimum latency: {{min}}ms<br/>
+			Maximum latency: {{max}}ms<br/>
+			Average latency: {{average}}ms<br/>
+			Total API Calls: {{total}}<br/>
+		</script>
 	</body>
 </html>

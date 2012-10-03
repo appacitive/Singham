@@ -4,7 +4,7 @@ var exceptions = require('./exceptions').exceptions
 // -----------  configurations  ----------
 var latencyBucketSize = 50
 var timeSliceSize = 1
-var windowSize = 3 * 60
+var windowSize = 5 * 60
 // -----------  configurations  ----------
 
 var aggregator = new (function() {
@@ -124,15 +124,26 @@ var aggregator = new (function() {
 		// for a difference of [timeSliceSize, 2 * timeSliceSize), the column number is 1
 		// so on
 		var columnNumber = parseInt(timeDiff / timeSliceSize)
-		if (columnNumber < numWindows && !maps[key].columns[columnNumber]) maps[key].columns[columnNumber] = { total: 0, startTime: statTime }
+		if (columnNumber < numWindows && !maps[key].columns[columnNumber]) {
+			maps[key].columns[columnNumber] = { 
+				total: 0, 
+				startTime: statTime,
+				frequency: 0
+			}
+		}
 
 		// check if you've wrapped around and are going to reuse a column
 		// if so, empty out the column and move the startTime
 		// ahead by the column's time interval
 		if (columnNumber >= numWindows) {
 			columnNumber = columnNumber % numWindows
-			if (statTime.getTime() - maps[key].columns[columnNumber].startTime.getTime() > timeSliceSize * 1000)
-				maps[key].columns[columnNumber] = { total: 0, startTime: statTime }
+			if (statTime.getTime() - maps[key].columns[columnNumber].startTime.getTime() > timeSliceSize * 1000) {
+				maps[key].columns[columnNumber] = { 
+					total: 0, 
+					startTime: statTime,
+					frequency: 0
+				}
+			}
 			maps[key].isRolled = true
 		}
 
@@ -146,7 +157,7 @@ var aggregator = new (function() {
 				max: -1,
 				min: Infinity,
 				average: 0,
-				total: 0,
+				total: 0
 			}
 
 		// and insert the data
@@ -160,8 +171,8 @@ var aggregator = new (function() {
 		maps[key].lastColumnWritten = columnNumber
 		maps[key].total += 1
 		maps[key].columns[columnNumber].total += 1
-
-		//console.log('Wrote the data.')
+		maps[key].columns[columnNumber].frequency = maps[key].columns[columnNumber].total / timeSliceSize
+		maps[key].frequency = maps[key].total / timeDiff
 	}
 
 })()

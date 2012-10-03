@@ -1,16 +1,34 @@
 var canvas
 
+// -----------  configurations  ----------
+var host = '192.168.2.68'
+var totalTime = 5 * 60
+var timeSliceSize = 1
+var latencyRange = 1 * 1500
+var latencyBucketSize = 50
+var statName = 'apis.service1.users.signup.success'
+var graphRefreshInterval = 2000
+var defaultOpacity = 1
+// -----------  configurations  ----------
+
+var changeStat = function(stat) {
+	$('.cell')
+		.css('opacity', defaultOpacity)
+		.css('border', '1px solid transparent')
+	statName = stat
+}
+
 $(function() {
 	canvas = document.getElementById('canvas')
 	window.onResize = function(w, h) {
 		canvas.width = w || ($(document.body).innerWidth() - ($(document.body).innerWidth() % 100))
-		canvas.height = h || ($(document.body).innerHeight() - ($(document.body).innerHeight() % 100))
+		canvas.height = h || ($(window).innerHeight() * 0.8)
 		console.log('setting to ' + canvas.width + ' x ' + canvas.height)
 		var context = canvas.getContext('2d')
 		var gradient = context.createLinearGradient(0,0,0,canvas.height);
 		gradient.addColorStop(1, '#0B173B');
 		gradient.addColorStop(0, '#0040FF');
-		context.fillStyle = gradient
+		context.fillStyle = '#0f0'
 		context.fillRect(0, 0, canvas.width, canvas.height)
 	}
 	window.onresize = onResize
@@ -19,33 +37,43 @@ $(function() {
 	createGrid()
 })
 
+var updateStats = function() {
+	$.get('/stats/_stats', function(data) {
+		console.dir(data)
+		data = JSON.parse(data)
+		$('ul.dropdown-menu').empty()
+		if (data.length == 0) return
+		var el = Mustache.render($('#tmplStatDropDown').html(), { stats: data})
+		$('ul.dropdown-menu').append($(el))
+	})
+}
+updateStats()
+setInterval(updateStats, 5000)
+
 var appendBlock = function(height, width) {
 	var i = 0
-	return function(opacity) {
+	var template = '<div id="cell{{id}}" rel="tooltip" class="cell" style="height: {{height}}px; width:{{width}}px;"><a rel="tooltip" class="a" href="javascript:void(0)">&nbsp;</a></div>'
+	return function(number) {
+		number = number || 1
+		var strings = ''
 		setTimeout(function() {
-			$('<div></div>')
-				.attr('id', 'cell' + i++)
-				.addClass('cell')
-				.css('height',height)
-				.css('width',width)
-				.css('opacity',opacity || 0.7)
-				.appendTo($(document.body))
-		})
+			for (var x1=0;x1<number;x1=x1+1) {
+				var tempString = template
+							.replace("{{id}}", i++)
+							.replace("{{height}}", height)
+							.replace("{{width}}", width)
+				strings += tempString
+			}
+			$('div#container').append($(strings))
+		}, 0)
 	}
 }
 
 var insertBreak = function() {
 	setTimeout(function() {
-		$('<div></div>').addClass('clear').appendTo($(document.body))
+		$('<div></div>').addClass('clear').appendTo($('div#container'))
 	})
 }
-
-// -----------  configurations  ----------
-var totalTime = 3 * 60
-var timeSliceSize = 1
-var latencyRange = 1 * 6000
-var latencyBucketSize = 50
-// -----------  configurations  ----------
 
 var numWindows = parseInt(totalTime / timeSliceSize)
 var numBuckets = parseInt(latencyRange / latencyBucketSize)
@@ -64,9 +92,9 @@ var createGrid = function() {
 	console.log('Drawing ' + numWindows + ' columns and ' + numBuckets + ' cells.')
 	var append = appendBlock(cellHeight - 2, cellWidth - 2)
 	for (var x=0;x<numBuckets; x=x+1) {
-		for (var y=0;y<numWindows;y=y+1) {
-			append()
-		}
+		//for (var y=0;y<numWindows;y=y+1) {
+			append(numWindows)
+		//}
 		insertBreak()
 	}
 
@@ -74,34 +102,61 @@ var createGrid = function() {
 	window.onResize(numWindows * cellWidth, numBuckets * cellHeight)
 
 	var redraw = function() {
-		$.get('http://localhost:8080/dataService.call', function(data) {
-			//console.dir(data)
+		$.get('stats/' + statName, function(data) {
 			parse(data)
 		})
 	}
-	setInterval(redraw, 900)
+	setInterval(redraw, graphRefreshInterval)
+
+	var tmpl = $('#tmplTooltip').html()
+	setTimeout(function() {
+		$('div.y-axis').css('top', canvas.height / 2)
+		$('a.a').tooltip({
+			title: function() {
+				var d = $(this).parent().data()
+				return Mustache.render(tmpl, d)
+			},
+			html: true
+		})
+	})
 }
 var flag = false
-var defaultOpacity = 1
 var parse = function(d) {
-	$('.cell').css('opacity', defaultOpacity).css('border-right', '1px solid transparent')
+	$('.cell')
+		.css('opacity', defaultOpacity)
+		.css('border', '1px solid transparent')
+		//.removeClass('graph-square')
+
 	var columns = d.columns
+	var max = 0
 	var getBlockByCoords = function(x, y) {
 		return $('#cell' + ((y * numWindows) + x))
 	}
 	for (var slice in columns) {
 		slice = parseInt(slice)
 		if (!slice) continue
+
+		if (max < d.columns[slice].frequency)		
+			max = d.columns[slice].frequency
+
+		// color the statistic
 		for (var latency in d.columns[slice]) {
 			latency = parseInt(latency)
-			if (!latency) continue
+			if (isNaN(latency)) continue
 			var columnTotal = d.columns[slice].total, blockTotal = d.columns[slice][latency].total
 			var relative = blockTotal / columnTotal
 			var opacity = 1 - relative
 			var block = getBlockByCoords(slice, numBuckets - latency)
 			block.css('opacity', opacity - (1 - defaultOpacity))
+			
+			if  (block.get(0)) {
+				block.data().min = d.columns[slice][latency].min
+				block.data().max = d.columns[slice][latency].max
+				block.data().average = d.columns[slice][latency].average
+				block.data().total = d.columns[slice][latency].total
+			}
 			if (slice == d.lastColumnWritten) {
-				block.css('border-right', '1px solid black')
+				block.css('border', '1px solid yellow')
 			}
 		}
 	}
