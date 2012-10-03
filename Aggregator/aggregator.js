@@ -85,6 +85,8 @@ var aggregator = new (function() {
 		return copy
 	}
 
+	// create a list of lists, primary level is the time windows
+	// and secondary is the latency buckets, jagged.
 	this.storeStat = function(key, value, timeStamp) {
 		// create big ass bitmap in memory if doesnt already exist
 		// resolve the cell 

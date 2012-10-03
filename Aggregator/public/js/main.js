@@ -1,14 +1,16 @@
 var canvas
 
 // -----------  configurations  ----------
-var host = '192.168.2.68'
+var host = '192.168.2.198'
 var totalTime = 5 * 60
 var timeSliceSize = 1
 var latencyRange = 1 * 1500
 var latencyBucketSize = 50
-var statName = 'apis.service1.users.signup.success'
+var statName = 'dataService.call'
 var graphRefreshInterval = 2000
 var defaultOpacity = 1
+var minimumOpacity = 0.75
+var canvasBackgroundColor = 'rgb(0,255,0)'
 // -----------  configurations  ----------
 
 var changeStat = function(stat) {
@@ -16,6 +18,15 @@ var changeStat = function(stat) {
 		.css('opacity', defaultOpacity)
 		.css('border', '1px solid transparent')
 	statName = stat
+	$('span#currentStatLabel').html(statName)
+}
+
+var changeLatency = function(val) {
+
+}
+
+var allDone = function() {
+	$('div#divAll').show()
 }
 
 $(function() {
@@ -28,7 +39,7 @@ $(function() {
 		var gradient = context.createLinearGradient(0,0,0,canvas.height);
 		gradient.addColorStop(1, '#0B173B');
 		gradient.addColorStop(0, '#0040FF');
-		context.fillStyle = '#0f0'
+		context.fillStyle = canvasBackgroundColor
 		context.fillRect(0, 0, canvas.width, canvas.height)
 	}
 	window.onresize = onResize
@@ -39,14 +50,18 @@ $(function() {
 
 var updateStats = function() {
 	$.get('/stats/_stats', function(data) {
-		console.dir(data)
 		data = JSON.parse(data)
-		$('ul.dropdown-menu').empty()
+		$('ul.stat-menu').empty()
 		if (data.length == 0) return
 		var el = Mustache.render($('#tmplStatDropDown').html(), { stats: data})
-		$('ul.dropdown-menu').append($(el))
+		$('ul.stat-menu').append($(el))
 	})
 }
+setTimeout(function() {
+	$('span#currentStatLabel').html(statName)
+	$('span#currentLatencyLabel').html(latencyBucketSize)
+	$('div.y-axis-top').html(latencyRange + 'ms').show()
+}, 10)
 updateStats()
 setInterval(updateStats, 5000)
 
@@ -114,10 +129,12 @@ var createGrid = function() {
 		$('a.a').tooltip({
 			title: function() {
 				var d = $(this).parent().data()
+				if (!d || !d.total) return '<b>No Data Here</b>'
 				return Mustache.render(tmpl, d)
 			},
 			html: true
 		})
+		allDone()
 	})
 }
 var flag = false
@@ -125,6 +142,7 @@ var parse = function(d) {
 	$('.cell')
 		.css('opacity', defaultOpacity)
 		.css('border', '1px solid transparent')
+		.data().total = null
 		//.removeClass('graph-square')
 
 	var columns = d.columns
@@ -147,13 +165,17 @@ var parse = function(d) {
 			var relative = blockTotal / columnTotal
 			var opacity = 1 - relative
 			var block = getBlockByCoords(slice, numBuckets - latency)
-			block.css('opacity', opacity - (1 - defaultOpacity))
+			//var opacity = opacity - (1 - defaultOpacity)
+			if (opacity <= minimumOpacity) opacity = minimumOpacity
+			block.css('opacity', opacity)
 			
 			if  (block.get(0)) {
 				block.data().min = d.columns[slice][latency].min
 				block.data().max = d.columns[slice][latency].max
 				block.data().average = d.columns[slice][latency].average
 				block.data().total = d.columns[slice][latency].total
+			} else {
+				//console.log(slice + ',' + (numBuckets - latency))
 			}
 			if (slice == d.lastColumnWritten) {
 				block.css('border', '1px solid yellow')

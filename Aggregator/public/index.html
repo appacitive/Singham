@@ -30,22 +30,53 @@
 				<ul class="nav">
 				  <li class="dropdown">
 				    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
-				      	Statistics<b class="caret"></b>
+				      	<span id="currentStatLabel">Statistics</span><b class="caret"></b>
 				    </a>
-				    <ul class="dropdown-menu">
+				    <ul class="dropdown-menu stat-menu">
 
 				    </ul>
 				    <script type="text/template" id="tmplStatDropDown">
+					    <li>&nbsp;&nbsp;&nbsp;&nbsp;Select the statistic</li>
+					    <li class="divider"></li>
 					    {{#stats}}
 					    	<li><a href="javascript:void(0)" onclick="changeStat('{{name}}')">{{name}} - ({{total}})</a></li>
 					    {{/stats}}
 				    </script>
 				  </li>
 				</ul>
+				<ul class="nav">
+				  <li class="dropdown">
+				    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
+				      	Current Latency Block - <span id="currentLatencyLabel">50</span>ms<b class="caret"></b>
+				    </a>
+				    <ul class="dropdown-menu latency-menu">
+				    	<li><a href="javascript:void(0)" onclick="changeLatency(50)">50ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeLatency(75)">75ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeLatency(100)">100ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeLatency(150)">150ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeLatency(200)">200ms</a></li>
+				    </ul>
+				  </li>
+				</ul>
+				<ul class="nav">
+				  <li class="dropdown">
+				    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
+				      	Current Max Latency - <span id="currentMaxLabel">1500</span>ms<b class="caret"></b>
+				    </a>
+				    <ul class="dropdown-menu max-menu">
+				    	<li><a href="javascript:void(0)" onclick="changeMaxLatency(1000)">1000ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeMaxLatency(1500)">1500ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeMaxLatency(2000)">2000ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeMaxLatency(2500)">2500ms</a></li>
+				    	<li><a href="javascript:void(0)" onclick="changeMaxLatency(3000)">3000ms</a></li>
+				    </ul>
+				  </li>
+				</ul>
 		    </div>
 		  </div>
 		</div>
-		<div style="text-align: center">
+		<div style="text-align: center" class="" id="divAll">
+			<div class="legend y-axis-top">0000 &raquo;</div>
 			<div class="legend y-axis">Latency (ms) &raquo;</div>
 			<div id="container">
 				<canvas id="canvas" class="canvas"></canvas>

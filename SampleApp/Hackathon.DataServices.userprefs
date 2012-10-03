@@ -1,6 +1,12 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Hackathon.DataServices/DataService.cs">
+    <Files>
+      <File FileName="Hackathon.DataServices/Config.cs" Line="1" Column="14" />
+      <File FileName="Hackathon.DataServices/DataService.ashx" Line="1" Column="1" />
+      <File FileName="Hackathon.DataServices/DataService.cs" Line="25" Column="31" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
